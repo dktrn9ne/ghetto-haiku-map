@@ -404,7 +404,9 @@ export default function HomePage() {
       }
     : null;
 
-  const visibleListBase = placementMode ? DESTINATIONS : activeDestinations;
+  // If a system line filter is active, show that line across the *entire* system (all stations),
+  // not just the current narrative route.
+  const visibleListBase = placementMode || activeSystemLine ? DESTINATIONS : activeDestinations;
   const visibleList = activeSystemLine
     ? visibleListBase.filter((d) => d.systemLine === activeSystemLine)
     : visibleListBase;
