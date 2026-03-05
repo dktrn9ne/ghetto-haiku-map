@@ -5,11 +5,14 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useMemo, useRef, useState } from "react";
 
+type SystemLine = "Red" | "Blue" | "Purple" | "Gold";
+
 type Destination = {
   key: string;
   label: string;
   code: string;
-  lineName: string;
+  // system line (visual identity)
+  systemLine: SystemLine;
   lineColor: string;
   href: string;
   // normalized coords (0..1) from top-left of the image
@@ -17,42 +20,125 @@ type Destination = {
   v: number;
 };
 
+type NarrativeLine = {
+  key: "intro" | "street" | "kaizen" | "hustle" | "enlightenment";
+  name: string;
+};
+
 const IMAGE_W = 800;
 const IMAGE_H = 570;
 
 // From the provided map screenshot (approx px coords)
+// Album content destinations (map stations)
 const DESTINATIONS: Destination[] = [
   {
-    key: "album",
-    label: "Shibuya",
-    code: "A-01",
-    lineName: "Album",
-    lineColor: "#00D4FF",
+    key: "intro",
+    label: "Ghetto Haiku (Intro)",
+    code: "P-01",
+    systemLine: "Purple",
+    lineColor: "#7c3aed",
     href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
     u: 190 / IMAGE_W,
     v: 400 / IMAGE_H,
   },
   {
-    key: "deluxe",
-    label: "Shinjuku",
-    code: "D-02",
-    lineName: "Deluxe",
-    lineColor: "#FF0A2B",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    key: "more-than-friends",
+    label: "More Than Friends",
+    code: "G-02",
+    systemLine: "Gold",
+    lineColor: "#fbbf24",
+    href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
     u: 195 / IMAGE_W,
     v: 275 / IMAGE_H,
   },
   {
-    key: "booklet",
-    label: "Roppongi",
-    code: "B-03",
-    lineName: "Booklet",
-    lineColor: "#FF2D7B",
-    href: "https://www.canva.com/design/DAGsvyn8uMg/gILQh1m5JRHNTxnNaTvfYg/watch?utm_content=DAGsvyn8uMg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hffab9ca1a1",
+    key: "amber",
+    label: "Amber",
+    code: "P-03",
+    systemLine: "Purple",
+    lineColor: "#7c3aed",
+    href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
     u: 310 / IMAGE_W,
     v: 430 / IMAGE_H,
   },
+  {
+    key: "golden-boba",
+    label: "Golden Boba",
+    code: "G-04",
+    systemLine: "Gold",
+    lineColor: "#fbbf24",
+    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    u: 330 / IMAGE_W,
+    v: 315 / IMAGE_H,
+  },
+  {
+    key: "mind-body-soul",
+    label: "Mind Body Soul",
+    code: "B-05",
+    systemLine: "Blue",
+    lineColor: "#60a5fa",
+    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    u: 245 / IMAGE_W,
+    v: 350 / IMAGE_H,
+  },
+  {
+    key: "tris-me",
+    label: "Tris Me",
+    code: "R-06",
+    systemLine: "Red",
+    lineColor: "#ff0a2b",
+    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    u: 240 / IMAGE_W,
+    v: 455 / IMAGE_H,
+  },
+  {
+    key: "pink-50s",
+    label: "Pink 50s",
+    code: "R-07",
+    systemLine: "Red",
+    lineColor: "#ff0a2b",
+    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    u: 420 / IMAGE_W,
+    v: 420 / IMAGE_H,
+  },
+  {
+    key: "cherry-blossom-serenade",
+    label: "Cherry Blossom Serenade",
+    code: "B-08",
+    systemLine: "Blue",
+    lineColor: "#60a5fa",
+    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    u: 460 / IMAGE_W,
+    v: 280 / IMAGE_H,
+  },
+  {
+    key: "breakupsong",
+    label: "BreakUpSong",
+    code: "G-09",
+    systemLine: "Gold",
+    lineColor: "#fbbf24",
+    href: "https://www.canva.com/design/DAGsvyn8uMg/gILQh1m5JRHNTxnNaTvfYg/watch?utm_content=DAGsvyn8uMg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hffab9ca1a1",
+    u: 520 / IMAGE_W,
+    v: 360 / IMAGE_H,
+  }
 ];
+
+const NARRATIVE_LINES: NarrativeLine[] = [
+  { key: "intro", name: "Line 1 — Intro" },
+  { key: "street", name: "Line 2 — Street Philosophy" },
+  { key: "kaizen", name: "Line 3 — Kaizen" },
+  { key: "hustle", name: "Line 4 — The Hustle" },
+  { key: "enlightenment", name: "Line 5 — Enlightenment" }
+];
+
+// Default narrative grouping (editable):
+const NARRATIVE_ASSIGN: Record<NarrativeLine["key"], string[]> = {
+  intro: ["intro"],
+  street: ["more-than-friends", "tris-me"],
+  kaizen: ["amber", "mind-body-soul"],
+  hustle: ["golden-boba", "pink-50s"],
+  enlightenment: ["cherry-blossom-serenade", "breakupsong"]
+};
 
 function easeInOut(t: number) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -83,12 +169,12 @@ function StationBadge({ d }: { d: Destination }) {
           borderRadius: 999,
           background: d.lineColor,
           color: "#0a0a0a",
-          fontWeight: 900,
+          fontWeight: 950,
           fontSize: 11,
           display: "grid",
           placeItems: "center",
         }}
-        title={d.lineName}
+        title={`${d.systemLine} Line`}
       >
         {d.code.split("-")[0]}
       </div>
@@ -97,7 +183,7 @@ function StationBadge({ d }: { d: Destination }) {
           {d.label.toUpperCase()}
         </div>
         <div style={{ fontSize: 10, color: "rgba(240,232,220,0.72)", fontWeight: 700 }}>
-          {d.code} • {d.lineName}
+          {d.code} • {d.systemLine}
         </div>
       </div>
     </div>
@@ -221,6 +307,7 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Destination | null>(null);
   const [travelTarget, setTravelTarget] = useState<THREE.Vector3 | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [activeNarrative, setActiveNarrative] = useState<NarrativeLine["key"]>("intro");
 
   const planeW = 10;
   const planeH = (IMAGE_H / IMAGE_W) * planeW;
@@ -231,30 +318,129 @@ export default function HomePage() {
     return new THREE.Vector3(x, y, 0);
   }
 
+  const allowedKeys = new Set(NARRATIVE_ASSIGN[activeNarrative]);
+  const activeDestinations = DESTINATIONS.filter((d) => allowedKeys.has(d.key));
+
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <Canvas
-        camera={{ position: [0, 0, 7], fov: 45 }}
-        dpr={[1, 2]}
-      >
-        <color attach="background" args={["#06070a"]} />
-        <ambientLight intensity={1.0} />
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "grid",
+        gridTemplateRows: "auto 1fr",
+        background: "radial-gradient(1200px 700px at 20% 10%, rgba(0,212,255,0.18), transparent 60%), radial-gradient(900px 500px at 70% 30%, rgba(255,45,123,0.16), transparent 60%), #06070a",
+      }}
+    >
+      {/* Hero */}
+      <div style={{ padding: "18px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#F0E8DC", fontWeight: 950, letterSpacing: 2, fontSize: 18 }}>GHETTO HAIKU</div>
+            <div style={{ color: "rgba(240,232,220,0.7)", fontSize: 12, marginTop: 4 }}>THE HAIKU TRANSIT SYSTEM</div>
+          </div>
 
-        <MapScene
-          onSelect={(d) => {
-            setSelected(d);
-            setShowModal(false);
-            setTravelTarget(destinationToWorld(d));
-          }}
-        />
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {NARRATIVE_LINES.map((l) => {
+              const active = l.key === activeNarrative;
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setActiveNarrative(l.key)}
+                  style={{
+                    padding: "8px 10px",
+                    borderRadius: 999,
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    background: active ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.25)",
+                    color: "#F0E8DC",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  {l.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-        <CameraTravel
-          target={travelTarget}
-          onArrive={() => {
-            setShowModal(true);
-          }}
-        />
-      </Canvas>
+      {/* Main */}
+      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", height: "100%" }}>
+        {/* Modules */}
+        <div style={{ borderRight: "1px solid rgba(255,255,255,0.08)", padding: 14 }}>
+          <div style={{ color: "rgba(240,232,220,0.7)", fontSize: 12, fontWeight: 900, letterSpacing: 1, marginBottom: 10 }}>MODULES</div>
+          {[
+            "Tracks",
+            "Lyrics",
+            "Visuals",
+            "Lore",
+            "Community",
+          ].map((m) => (
+            <button
+              key={m}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "10px 12px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.10)",
+                background: "rgba(10,10,10,0.35)",
+                color: "#F0E8DC",
+                fontWeight: 900,
+                marginBottom: 10,
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                // v1: modules are visual only; we can wire behaviors next
+              }}
+            >
+              {m}
+            </button>
+          ))}
+
+          <div style={{ marginTop: 10, padding: 12, borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10,10,10,0.25)", color: "rgba(240,232,220,0.78)", fontSize: 12 }}>
+            <div style={{ fontWeight: 950, color: "#F0E8DC" }}>System Lines</div>
+            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+              <div><span style={{ color: "#ff0a2b", fontWeight: 900 }}>Red</span> — Hustle</div>
+              <div><span style={{ color: "#60a5fa", fontWeight: 900 }}>Blue</span> — Wisdom</div>
+              <div><span style={{ color: "#7c3aed", fontWeight: 900 }}>Purple</span> — Legacy</div>
+              <div><span style={{ color: "#fbbf24", fontWeight: 900 }}>Gold</span> — Divine N9NE</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Map canvas */}
+        <div style={{ position: "relative" }}>
+          <Canvas camera={{ position: [0, 0, 7], fov: 45 }} dpr={[1, 2]}>
+            <color attach="background" args={["#06070a"]} />
+            <ambientLight intensity={1.0} />
+
+            <MapScene
+              onSelect={(d) => {
+                setSelected(d);
+                setShowModal(false);
+                setTravelTarget(destinationToWorld(d));
+              }}
+            />
+
+            {/* Hide markers not in current narrative by keeping list in MapScene global.
+                v2: We will pass activeDestinations into MapScene for true filtering.
+            */}
+            <CameraTravel
+              target={travelTarget}
+              onArrive={() => {
+                setShowModal(true);
+              }}
+            />
+          </Canvas>
+
+          {/* v1 overlay note */}
+          <div style={{ position: "absolute", left: 14, bottom: 14, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10,10,10,0.35)", color: "rgba(240,232,220,0.78)", fontSize: 12 }}>
+            Active route: <span style={{ fontWeight: 950, color: "#F0E8DC" }}>{NARRATIVE_LINES.find((l) => l.key === activeNarrative)?.name}</span>
+          </div>
+        </div>
+      </div>
 
       {showModal && selected ? (
         <div
@@ -281,9 +467,9 @@ export default function HomePage() {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 900 }}>{selected.label}</div>
+                <div style={{ fontSize: 16, fontWeight: 950 }}>{selected.label}</div>
                 <div style={{ marginTop: 2, fontSize: 12, opacity: 0.75 }}>
-                  {selected.code} • {selected.lineName}
+                  {selected.code} • {selected.systemLine}
                 </div>
               </div>
               <div
@@ -293,11 +479,11 @@ export default function HomePage() {
                   borderRadius: 999,
                   background: selected.lineColor,
                   color: "#0a0a0a",
-                  fontWeight: 900,
+                  fontWeight: 950,
                   display: "grid",
                   placeItems: "center",
                 }}
-                title={selected.lineName}
+                title={`${selected.systemLine} Line`}
               >
                 {selected.code.split("-")[0]}
               </div>
@@ -318,9 +504,9 @@ export default function HomePage() {
                 justifyContent: "center",
                 padding: "10px 12px",
                 borderRadius: 12,
-                background: "#f59e0b",
+                background: selected.lineColor,
                 color: "#0a0a0a",
-                fontWeight: 800,
+                fontWeight: 900,
                 textDecoration: "none",
               }}
             >
