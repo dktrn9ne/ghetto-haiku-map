@@ -50,6 +50,13 @@ function withPlaced(key: string, u: number, v: number) {
   return p ? { u: p.u, v: p.v } : { u, v };
 }
 
+const YT_PLAYLIST_ID = "PLNNZAR-OBWkzoG3-efg2zrTzYwwJo-iJM";
+
+function ytPlaylistIndexUrl(index: number) {
+  // Plays inside the playlist context.
+  return `https://www.youtube.com/playlist?list=${YT_PLAYLIST_ID}&playnext=1&index=${index}`;
+}
+
 // Album content destinations (map stations)
 const DESTINATIONS: Destination[] = [
   {
@@ -58,7 +65,7 @@ const DESTINATIONS: Destination[] = [
     code: "P-01",
     systemLine: "Purple",
     lineColor: "#7c3aed",
-    href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
+    href: ytPlaylistIndexUrl(1),
     ...withPlaced("intro", 190 / IMAGE_W, 400 / IMAGE_H),
   },
   {
@@ -67,7 +74,7 @@ const DESTINATIONS: Destination[] = [
     code: "G-02",
     systemLine: "Gold",
     lineColor: "#fbbf24",
-    href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
+    href: ytPlaylistIndexUrl(2),
     ...withPlaced("more-than-friends", 195 / IMAGE_W, 275 / IMAGE_H),
   },
   {
@@ -76,7 +83,7 @@ const DESTINATIONS: Destination[] = [
     code: "P-03",
     systemLine: "Purple",
     lineColor: "#7c3aed",
-    href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
+    href: ytPlaylistIndexUrl(3),
     ...withPlaced("amber", 310 / IMAGE_W, 430 / IMAGE_H),
   },
   {
@@ -85,7 +92,7 @@ const DESTINATIONS: Destination[] = [
     code: "G-04",
     systemLine: "Gold",
     lineColor: "#fbbf24",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    href: ytPlaylistIndexUrl(4),
     ...withPlaced("golden-boba", 330 / IMAGE_W, 315 / IMAGE_H),
   },
   {
@@ -94,7 +101,7 @@ const DESTINATIONS: Destination[] = [
     code: "B-05",
     systemLine: "Blue",
     lineColor: "#60a5fa",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    href: ytPlaylistIndexUrl(5),
     ...withPlaced("mind-body-soul", 245 / IMAGE_W, 350 / IMAGE_H),
   },
   {
@@ -103,7 +110,7 @@ const DESTINATIONS: Destination[] = [
     code: "R-06",
     systemLine: "Red",
     lineColor: "#ff0a2b",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    href: ytPlaylistIndexUrl(6),
     ...withPlaced("tris-me", 240 / IMAGE_W, 455 / IMAGE_H),
   },
   {
@@ -112,7 +119,7 @@ const DESTINATIONS: Destination[] = [
     code: "R-07",
     systemLine: "Red",
     lineColor: "#ff0a2b",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    href: ytPlaylistIndexUrl(7),
     ...withPlaced("pink-50s", 420 / IMAGE_W, 420 / IMAGE_H),
   },
   {
@@ -121,7 +128,7 @@ const DESTINATIONS: Destination[] = [
     code: "B-08",
     systemLine: "Blue",
     lineColor: "#60a5fa",
-    href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
+    href: ytPlaylistIndexUrl(8),
     ...withPlaced("cherry-blossom-serenade", 460 / IMAGE_W, 280 / IMAGE_H),
   },
   {
@@ -130,9 +137,8 @@ const DESTINATIONS: Destination[] = [
     code: "G-09",
     systemLine: "Gold",
     lineColor: "#fbbf24",
-    href: "https://www.canva.com/design/DAGsvyn8uMg/gILQh1m5JRHNTxnNaTvfYg/watch?utm_content=DAGsvyn8uMg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hffab9ca1a1",
-    u: 520 / IMAGE_W,
-    v: 360 / IMAGE_H,
+    href: ytPlaylistIndexUrl(9),
+    ...withPlaced("breakupsong", 520 / IMAGE_W, 360 / IMAGE_H),
   }
 ];
 
