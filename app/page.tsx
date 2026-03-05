@@ -53,7 +53,8 @@ function MapScene({
 }) {
   const texture = useMemo(() => {
     const loader = new THREE.TextureLoader();
-    const tex = loader.load("/tokyo-map.jpg");
+    // Minimal artistic map (SVG rendered as texture by the browser)
+    const tex = loader.load("/tokyo-minimal.svg");
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
     return tex;

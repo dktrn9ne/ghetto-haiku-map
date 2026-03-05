@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 570" width="800" height="570">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06070a"/>
+      <stop offset="1" stop-color="#0D1B2A"/>
+    </linearGradient>
+
+    <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="glowMagenta" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="glowRed" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <style>
+      .label{font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; font-weight:800; letter-spacing:0.5px}
+      .small{font-size:14px; fill:#F0E8DC; opacity:0.92}
+      .title{font-size:24px; fill:#F0E8DC;}
+      .hint{font-size:12px; fill:#F0E8DC; opacity:0.65}
+      .line{fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:0.95}
+      .thin{stroke-width:4}
+      .thick{stroke-width:6}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="800" height="570" fill="url(#bg)"/>
+
+  <!-- Minimal artistic transit lines (stylized, not full Tokyo map) -->
+  <!-- Cyan Line (Shibuya -> Shinjuku-ish) -->
+  <path class="line thick" filter="url(#glowCyan)" stroke="#00D4FF" d="M 165 460 C 140 410, 150 365, 175 325 C 200 285, 215 255, 205 225"/>
+
+  <!-- Magenta Line (Shibuya -> Roppongi-ish) -->
+  <path class="line thick" filter="url(#glowMagenta)" stroke="#FF2D7B" d="M 165 460 C 210 470, 255 470, 300 455 C 335 440, 345 430, 360 410"/>
+
+  <!-- Red Line (Shinjuku-ish -> Roppongi-ish) -->
+  <path class="line thick" filter="url(#glowRed)" stroke="#FF0A2B" d="M 205 225 C 250 250, 285 295, 315 335 C 335 360, 350 385, 360 410"/>
+
+  <!-- Stations (we only show the 3) -->
+  <!-- Shibuya (approx x=190 y=400 label, but station dot at x=165 y=460 to look composed) -->
+  <g>
+    <circle cx="165" cy="460" r="8" fill="#F0E8DC" opacity="0.95"/>
+    <circle cx="165" cy="460" r="16" fill="none" stroke="#00D4FF" stroke-width="2" opacity="0.7" filter="url(#glowCyan)"/>
+    <text x="185" y="465" class="label small">SHIBUYA</text>
+  </g>
+
+  <!-- Shinjuku (x~195 y~275 label, station at x=205 y=225) -->
+  <g>
+    <circle cx="205" cy="225" r="8" fill="#F0E8DC" opacity="0.95"/>
+    <circle cx="205" cy="225" r="16" fill="none" stroke="#FF0A2B" stroke-width="2" opacity="0.7" filter="url(#glowRed)"/>
+    <text x="225" y="230" class="label small">SHINJUKU</text>
+  </g>
+
+  <!-- Roppongi (x~310 y~430 label, station at x=360 y=410) -->
+  <g>
+    <circle cx="360" cy="410" r="8" fill="#F0E8DC" opacity="0.95"/>
+    <circle cx="360" cy="410" r="16" fill="none" stroke="#FF2D7B" stroke-width="2" opacity="0.7" filter="url(#glowMagenta)"/>
+    <text x="380" y="415" class="label small">ROPPONGI</text>
+  </g>
+
+  <!-- Title card -->
+  <g>
+    <rect x="24" y="22" width="270" height="72" rx="14" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.12)"/>
+    <text x="40" y="52" class="label title">Ghetto Haiku</text>
+    <text x="40" y="74" class="label hint">Tap a station to travel</text>
+  </g>
+</svg>
