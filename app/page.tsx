@@ -39,7 +39,8 @@ const PLACED: Record<string, { u: number; v: number }> = {
   "mind-body-soul": { "u": 0.5019814316195523, "v": 0.45341816090962417 },
   "tris-me": { "u": 0.58850394567334, "v": 0.4345872046815997 },
   "pink-50s": { "u": 0.37913267120730426, "v": 0.8875212571135526 },
-  "cherry-blossom-serenade": { "u": 0.3870583976855137, "v": 0.6010925018557094 }
+  "cherry-blossom-serenade": { "u": 0.3870583976855137, "v": 0.6010925018557094 },
+  "breakupsong": { "u": 0.44980373230467297, "v": 0.7279536806550306 }
 };
 
 function withPlaced(key: string, u: number, v: number) {
