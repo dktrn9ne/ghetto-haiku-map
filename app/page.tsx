@@ -25,8 +25,8 @@ type NarrativeLine = {
   name: string;
 };
 
-const IMAGE_W = 800;
-const IMAGE_H = 570;
+const IMAGE_W = 1280;
+const IMAGE_H = 853;
 
 // From the provided map screenshot (approx px coords)
 // Album content destinations (map stations)
@@ -197,8 +197,8 @@ function MapScene({
 }) {
   const texture = useMemo(() => {
     const loader = new THREE.TextureLoader();
-    // Minimal artistic map (SVG rendered as texture by the browser)
-    const tex = loader.load("/tokyo-minimal.svg");
+    // Full UI backdrop image (reference style)
+    const tex = loader.load("/backdrop.jpg");
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
     return tex;
