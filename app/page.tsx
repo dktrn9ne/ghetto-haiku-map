@@ -29,6 +29,24 @@ const IMAGE_W = 1280;
 const IMAGE_H = 853;
 
 // From the provided map screenshot (approx px coords)
+// Finalized placement coordinates (from Placement Mode).
+// NOTE: "breakupsong" still needs placement.
+const PLACED: Record<string, { u: number; v: number }> = {
+  "intro": { "u": 0.4689575712936792, "v": 0.8121974322014552 },
+  "more-than-friends": { "u": 0.45971089040243474, "v": 0.6030747077744488 },
+  "amber": { "u": 0.6862545722379246, "v": 0.5336975006185696 },
+  "golden-boba": { "u": 0.5548196081409494, "v": 0.26015308383253277 },
+  "mind-body-soul": { "u": 0.5019814316195523, "v": 0.45341816090962417 },
+  "tris-me": { "u": 0.58850394567334, "v": 0.4345872046815997 },
+  "pink-50s": { "u": 0.37913267120730426, "v": 0.8875212571135526 },
+  "cherry-blossom-serenade": { "u": 0.3870583976855137, "v": 0.6010925018557094 }
+};
+
+function withPlaced(key: string, u: number, v: number) {
+  const p = PLACED[key];
+  return p ? { u: p.u, v: p.v } : { u, v };
+}
+
 // Album content destinations (map stations)
 const DESTINATIONS: Destination[] = [
   {
@@ -38,8 +56,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Purple",
     lineColor: "#7c3aed",
     href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
-    u: 190 / IMAGE_W,
-    v: 400 / IMAGE_H,
+    ...withPlaced("intro", 190 / IMAGE_W, 400 / IMAGE_H),
   },
   {
     key: "more-than-friends",
@@ -48,8 +65,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Gold",
     lineColor: "#fbbf24",
     href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
-    u: 195 / IMAGE_W,
-    v: 275 / IMAGE_H,
+    ...withPlaced("more-than-friends", 195 / IMAGE_W, 275 / IMAGE_H),
   },
   {
     key: "amber",
@@ -58,8 +74,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Purple",
     lineColor: "#7c3aed",
     href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
-    u: 310 / IMAGE_W,
-    v: 430 / IMAGE_H,
+    ...withPlaced("amber", 310 / IMAGE_W, 430 / IMAGE_H),
   },
   {
     key: "golden-boba",
@@ -68,8 +83,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Gold",
     lineColor: "#fbbf24",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
-    u: 330 / IMAGE_W,
-    v: 315 / IMAGE_H,
+    ...withPlaced("golden-boba", 330 / IMAGE_W, 315 / IMAGE_H),
   },
   {
     key: "mind-body-soul",
@@ -78,8 +92,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Blue",
     lineColor: "#60a5fa",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
-    u: 245 / IMAGE_W,
-    v: 350 / IMAGE_H,
+    ...withPlaced("mind-body-soul", 245 / IMAGE_W, 350 / IMAGE_H),
   },
   {
     key: "tris-me",
@@ -88,8 +101,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Red",
     lineColor: "#ff0a2b",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
-    u: 240 / IMAGE_W,
-    v: 455 / IMAGE_H,
+    ...withPlaced("tris-me", 240 / IMAGE_W, 455 / IMAGE_H),
   },
   {
     key: "pink-50s",
@@ -98,8 +110,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Red",
     lineColor: "#ff0a2b",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
-    u: 420 / IMAGE_W,
-    v: 420 / IMAGE_H,
+    ...withPlaced("pink-50s", 420 / IMAGE_W, 420 / IMAGE_H),
   },
   {
     key: "cherry-blossom-serenade",
@@ -108,8 +119,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Blue",
     lineColor: "#60a5fa",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
-    u: 460 / IMAGE_W,
-    v: 280 / IMAGE_H,
+    ...withPlaced("cherry-blossom-serenade", 460 / IMAGE_W, 280 / IMAGE_H),
   },
   {
     key: "breakupsong",
