@@ -14,15 +14,19 @@ export type Track = {
 export function PlayerPanel({
   track,
   module,
-  onOpen,
+  isPlaying,
+  onPlayPause,
   onPrev,
   onNext,
+  onOpenLink,
 }: {
   track: Track | null;
   module: ModuleKey;
-  onOpen: () => void;
+  isPlaying: boolean;
+  onPlayPause: () => void;
   onPrev: () => void;
   onNext: () => void;
+  onOpenLink: () => void;
 }) {
   const title = track?.title ?? "—";
   const code = track?.code ?? "";
@@ -48,19 +52,19 @@ export function PlayerPanel({
         <button className="mc-iconBtn" onClick={onPrev} aria-label="Previous">
           ⏮
         </button>
-        <button className="mc-iconBtn mc-iconBtnPrimary" onClick={onOpen} aria-label="Open">
-          ▶
+        <button className="mc-iconBtn mc-iconBtnPrimary" onClick={onPlayPause} aria-label={isPlaying ? "Pause" : "Play"}>
+          {isPlaying ? "⏸" : "▶"}
         </button>
         <button className="mc-iconBtn" onClick={onNext} aria-label="Next">
           ⏭
         </button>
         <div className="mc-playerSpacer" />
-        <button className="mc-iconBtn" onClick={onOpen} aria-label="Open link">
+        <button className="mc-iconBtn" onClick={onOpenLink} aria-label="Open link">
           ↗
         </button>
       </div>
 
-      <div className="mc-playerHint">Open uses the station destination link (Untitled/Canva). Audio playback can be wired once we have direct audio URLs.</div>
+      <div className="mc-playerHint">Uses a hidden YouTube playlist player under the hood. If autoplay is blocked, tap Play once.</div>
     </div>
   );
 }

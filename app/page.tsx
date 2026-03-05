@@ -17,6 +17,7 @@ type Destination = {
   systemLine: SystemLine;
   lineColor: string;
   href: string;
+  playlistIndex: number;
   // normalized coords (0..1) from top-left of the image
   u: number;
   v: number;
@@ -66,6 +67,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Purple",
     lineColor: "#7c3aed",
     href: ytPlaylistIndexUrl(1),
+    playlistIndex: 1,
     ...withPlaced("intro", 190 / IMAGE_W, 400 / IMAGE_H),
   },
   {
@@ -75,6 +77,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Gold",
     lineColor: "#fbbf24",
     href: ytPlaylistIndexUrl(2),
+    playlistIndex: 2,
     ...withPlaced("more-than-friends", 195 / IMAGE_W, 275 / IMAGE_H),
   },
   {
@@ -84,6 +87,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Purple",
     lineColor: "#7c3aed",
     href: ytPlaylistIndexUrl(3),
+    playlistIndex: 3,
     ...withPlaced("amber", 310 / IMAGE_W, 430 / IMAGE_H),
   },
   {
@@ -93,6 +97,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Gold",
     lineColor: "#fbbf24",
     href: ytPlaylistIndexUrl(4),
+    playlistIndex: 4,
     ...withPlaced("golden-boba", 330 / IMAGE_W, 315 / IMAGE_H),
   },
   {
@@ -102,6 +107,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Blue",
     lineColor: "#60a5fa",
     href: ytPlaylistIndexUrl(5),
+    playlistIndex: 5,
     ...withPlaced("mind-body-soul", 245 / IMAGE_W, 350 / IMAGE_H),
   },
   {
@@ -111,6 +117,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Red",
     lineColor: "#ff0a2b",
     href: ytPlaylistIndexUrl(6),
+    playlistIndex: 6,
     ...withPlaced("tris-me", 240 / IMAGE_W, 455 / IMAGE_H),
   },
   {
@@ -120,6 +127,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Red",
     lineColor: "#ff0a2b",
     href: ytPlaylistIndexUrl(7),
+    playlistIndex: 7,
     ...withPlaced("pink-50s", 420 / IMAGE_W, 420 / IMAGE_H),
   },
   {
@@ -129,6 +137,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Blue",
     lineColor: "#60a5fa",
     href: ytPlaylistIndexUrl(8),
+    playlistIndex: 8,
     ...withPlaced("cherry-blossom-serenade", 460 / IMAGE_W, 280 / IMAGE_H),
   },
   {
@@ -138,6 +147,7 @@ const DESTINATIONS: Destination[] = [
     systemLine: "Gold",
     lineColor: "#fbbf24",
     href: ytPlaylistIndexUrl(9),
+    playlistIndex: 9,
     ...withPlaced("breakupsong", 520 / IMAGE_W, 360 / IMAGE_H),
   }
 ];
@@ -364,6 +374,11 @@ export default function HomePage() {
   const [module, setModule] = useState<ModuleKey>("tracks");
   const [activeSystemLine, setActiveSystemLine] = useState<SystemLine | null>(null);
 
+  // YouTube playlist player (hidden)
+  const ytRef = useRef<any>(null);
+  const [ytReady, setYtReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
   // Placement Mode (press P)
   const [placementMode, setPlacementMode] = useState(false);
   const [placementIndex, setPlacementIndex] = useState(0);
@@ -397,6 +412,108 @@ export default function HomePage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Init YouTube IFrame API + hidden playlist player
+  useEffect(() => {
+    const w = window as any;
+
+    function ensureScript() {
+      if (document.getElementById("yt-iframe-api")) return;
+      const tag = document.createElement("script");
+      tag.id = "yt-iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+
+    ensureScript();
+
+    // If API already available, create immediately.
+    const tryCreate = () => {
+      if (!w.YT || !w.YT.Player) return false;
+      if (ytRef.current) return true;
+
+      ytRef.current = new w.YT.Player("ytPlayer", {
+        height: "0",
+        width: "0",
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          // NOTE: enablejsapi implied by iframe_api
+        },
+        events: {
+          onReady: () => {
+            setYtReady(true);
+          },
+          onStateChange: (ev: any) => {
+            // 1 = playing, 2 = paused
+            if (ev?.data === 1) setIsPlaying(true);
+            if (ev?.data === 2) setIsPlaying(false);
+          },
+        },
+      });
+      return true;
+    };
+
+    // YouTube calls global callback when ready
+    w.onYouTubeIframeAPIReady = () => {
+      tryCreate();
+    };
+
+    // best-effort
+    tryCreate();
+
+    return () => {
+      // keep player across navigations; do not destroy
+    };
+  }, []);
+
+  function ytPlayIndex(index1: number) {
+    const p = ytRef.current;
+    if (!p) return;
+
+    // YouTube uses 0-based index.
+    const index0 = Math.max(0, index1 - 1);
+
+    try {
+      // loadPlaylist starts playback; if autoplay is blocked, user can hit Play.
+      p.loadPlaylist({ listType: "playlist", list: YT_PLAYLIST_ID, index: index0 });
+      p.playVideo();
+    } catch {
+      // ignore
+    }
+  }
+
+  function ytTogglePlayPause() {
+    const p = ytRef.current;
+    if (!p) return;
+    try {
+      if (isPlaying) p.pauseVideo();
+      else p.playVideo();
+    } catch {
+      // ignore
+    }
+  }
+
+  function ytPrev() {
+    const p = ytRef.current;
+    if (!p) return;
+    try {
+      p.previousVideo();
+      p.playVideo();
+    } catch {}
+  }
+
+  function ytNext() {
+    const p = ytRef.current;
+    if (!p) return;
+    try {
+      p.nextVideo();
+      p.playVideo();
+    } catch {}
+  }
 
   // For the UI player panel
   const currentTrack: Track | null = selected
@@ -424,12 +541,18 @@ export default function HomePage() {
     if (href) window.open(href, "_blank", "noopener,noreferrer");
   }
 
+  function selectStation(d: Destination) {
+    setSelected(d);
+    setShowModal(false);
+    setTravelTarget(destinationToWorld(d));
+    // auto-play the matching playlist track (after user gesture)
+    ytPlayIndex(d.playlistIndex);
+  }
+
   function selectByOffset(delta: number) {
     if (!visibleList.length) return;
     const next = visibleList[(Math.max(0, idx) + delta + visibleList.length) % visibleList.length];
-    setSelected(next);
-    setShowModal(false);
-    setTravelTarget(destinationToWorld(next));
+    selectStation(next);
   }
 
   return (
@@ -516,9 +639,7 @@ export default function HomePage() {
                 placementMode={placementMode}
                 placementKey={placementKey}
                 onSelect={(d) => {
-                  setSelected(d);
-                  setShowModal(false);
-                  setTravelTarget(destinationToWorld(d));
+                  selectStation(d);
                 }}
                 onPlace={(u, v) => {
                   if (!placementKey) return;
@@ -566,10 +687,21 @@ export default function HomePage() {
             <PlayerPanel
               track={currentTrack}
               module={module}
-              onOpen={openSelected}
-              onPrev={() => selectByOffset(-1)}
-              onNext={() => selectByOffset(1)}
+              isPlaying={isPlaying}
+              onPlayPause={ytTogglePlayPause}
+              onPrev={() => {
+                ytPrev();
+                selectByOffset(-1);
+              }}
+              onNext={() => {
+                ytNext();
+                selectByOffset(1);
+              }}
+              onOpenLink={openSelected}
             />
+
+            {/* Hidden YouTube player mount */}
+            <div id="ytPlayer" style={{ position: "absolute", left: -9999, top: -9999, width: 1, height: 1, overflow: "hidden" }} />
           </div>
         </div>
       </div>
