@@ -356,6 +356,7 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [activeNarrative, setActiveNarrative] = useState<NarrativeLine["key"]>("intro");
   const [module, setModule] = useState<ModuleKey>("tracks");
+  const [activeSystemLine, setActiveSystemLine] = useState<SystemLine | null>(null);
 
   // Placement Mode (press P)
   const [placementMode, setPlacementMode] = useState(false);
@@ -403,7 +404,10 @@ export default function HomePage() {
       }
     : null;
 
-  const visibleList = placementMode ? DESTINATIONS : activeDestinations;
+  const visibleListBase = placementMode ? DESTINATIONS : activeDestinations;
+  const visibleList = activeSystemLine
+    ? visibleListBase.filter((d) => d.systemLine === activeSystemLine)
+    : visibleListBase;
 
   const idx = currentTrack ? visibleList.findIndex((d) => d.key === currentTrack.key) : -1;
 
@@ -429,18 +433,68 @@ export default function HomePage() {
           <div className="mc-topbar">
             <div className="mc-topTitle">HAIKU TRANSIT SYSTEM</div>
             <div className="mc-linePills">
-              <span className="mc-pill" style={{ borderColor: "rgba(255,10,43,0.35)" }}>
+              <button
+                className="mc-pill"
+                onClick={() => setActiveSystemLine((cur) => (cur === "Red" ? null : "Red"))}
+                style={{
+                  borderColor: "rgba(255,10,43,0.35)",
+                  background: activeSystemLine === "Red" ? "rgba(255,10,43,0.10)" : undefined,
+                  cursor: "pointer",
+                }}
+                title="Toggle Red line"
+              >
                 <span style={{ color: "#ff0a2b", fontWeight: 950 }}>Red</span> Hustle
-              </span>
-              <span className="mc-pill" style={{ borderColor: "rgba(96,165,250,0.35)" }}>
+              </button>
+
+              <button
+                className="mc-pill"
+                onClick={() => setActiveSystemLine((cur) => (cur === "Blue" ? null : "Blue"))}
+                style={{
+                  borderColor: "rgba(96,165,250,0.35)",
+                  background: activeSystemLine === "Blue" ? "rgba(96,165,250,0.10)" : undefined,
+                  cursor: "pointer",
+                }}
+                title="Toggle Blue line"
+              >
                 <span style={{ color: "#60a5fa", fontWeight: 950 }}>Blue</span> Wisdom
-              </span>
-              <span className="mc-pill" style={{ borderColor: "rgba(124,58,237,0.35)" }}>
+              </button>
+
+              <button
+                className="mc-pill"
+                onClick={() => setActiveSystemLine((cur) => (cur === "Purple" ? null : "Purple"))}
+                style={{
+                  borderColor: "rgba(124,58,237,0.35)",
+                  background: activeSystemLine === "Purple" ? "rgba(124,58,237,0.10)" : undefined,
+                  cursor: "pointer",
+                }}
+                title="Toggle Purple line"
+              >
                 <span style={{ color: "#7c3aed", fontWeight: 950 }}>Purple</span> Legacy
-              </span>
-              <span className="mc-pill" style={{ borderColor: "rgba(255,213,64,0.35)" }}>
+              </button>
+
+              <button
+                className="mc-pill"
+                onClick={() => setActiveSystemLine((cur) => (cur === "Gold" ? null : "Gold"))}
+                style={{
+                  borderColor: "rgba(255,213,64,0.35)",
+                  background: activeSystemLine === "Gold" ? "rgba(255,213,64,0.10)" : undefined,
+                  cursor: "pointer",
+                }}
+                title="Toggle Gold line"
+              >
                 <span style={{ color: "#ffd540", fontWeight: 950 }}>Gold</span> Divine N9NE
-              </span>
+              </button>
+
+              {activeSystemLine ? (
+                <button
+                  className="mc-pill"
+                  onClick={() => setActiveSystemLine(null)}
+                  style={{ borderColor: "rgba(255,255,255,0.20)", cursor: "pointer" }}
+                  title="Show all lines"
+                >
+                  Show all
+                </button>
+              ) : null}
             </div>
           </div>
 
