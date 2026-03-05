@@ -1,13 +1,16 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html, Text } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useMemo, useRef, useState } from "react";
 
 type Destination = {
   key: string;
   label: string;
+  code: string;
+  lineName: string;
+  lineColor: string;
   href: string;
   // normalized coords (0..1) from top-left of the image
   u: number;
@@ -21,21 +24,30 @@ const IMAGE_H = 570;
 const DESTINATIONS: Destination[] = [
   {
     key: "album",
-    label: "Album — Shibuya",
+    label: "Shibuya",
+    code: "A-01",
+    lineName: "Album",
+    lineColor: "#00D4FF",
     href: "https://untitled.stream/buy/project/hGBEJT3s3ZGDzItNJYgC6",
     u: 190 / IMAGE_W,
     v: 400 / IMAGE_H,
   },
   {
     key: "deluxe",
-    label: "Deluxe — Shinjuku",
+    label: "Shinjuku",
+    code: "D-02",
+    lineName: "Deluxe",
+    lineColor: "#FF0A2B",
     href: "https://untitled.stream/buy/project/7knQBmL1NgffFXMw9LT2w",
     u: 195 / IMAGE_W,
     v: 275 / IMAGE_H,
   },
   {
     key: "booklet",
-    label: "Booklet — Roppongi",
+    label: "Roppongi",
+    code: "B-03",
+    lineName: "Booklet",
+    lineColor: "#FF2D7B",
     href: "https://www.canva.com/design/DAGsvyn8uMg/gILQh1m5JRHNTxnNaTvfYg/watch?utm_content=DAGsvyn8uMg&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hffab9ca1a1",
     u: 310 / IMAGE_W,
     v: 430 / IMAGE_H,
@@ -44,6 +56,52 @@ const DESTINATIONS: Destination[] = [
 
 function easeInOut(t: number) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+function StationBadge({ d }: { d: Destination }) {
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "6px 10px",
+        borderRadius: 14,
+        border: "1px solid rgba(255,255,255,0.16)",
+        background: "rgba(10,10,10,0.75)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        whiteSpace: "nowrap",
+        userSelect: "none",
+      }}
+    >
+      <div
+        style={{
+          width: 36,
+          height: 22,
+          borderRadius: 999,
+          background: d.lineColor,
+          color: "#0a0a0a",
+          fontWeight: 900,
+          fontSize: 11,
+          display: "grid",
+          placeItems: "center",
+        }}
+        title={d.lineName}
+      >
+        {d.code.split("-")[0]}
+      </div>
+      <div style={{ display: "grid", lineHeight: 1.05 }}>
+        <div style={{ fontWeight: 900, fontSize: 12, color: "#F0E8DC", letterSpacing: 0.6 }}>
+          {d.label.toUpperCase()}
+        </div>
+        <div style={{ fontSize: 10, color: "rgba(240,232,220,0.72)", fontWeight: 700 }}>
+          {d.code} • {d.lineName}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function MapScene({
@@ -88,17 +146,9 @@ function MapScene({
               <ringGeometry args={[0.20, 0.24, 48]} />
               <meshBasicMaterial color="#fbbf24" transparent opacity={0.55} />
             </mesh>
-            <Text
-              position={[0.0, 0.35, 0]}
-              fontSize={0.28}
-              color="#e5e7eb"
-              anchorX="center"
-              anchorY="middle"
-              outlineWidth={0.008}
-              outlineColor="#0a0a0a"
-            >
-              {d.label}
-            </Text>
+            <Html position={[0.0, 0.55, 0]} center>
+              <StationBadge d={d} />
+            </Html>
           </group>
         );
       })}
@@ -229,8 +279,31 @@ export default function HomePage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontSize: 16, fontWeight: 800 }}>{selected.label}</div>
-            <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 900 }}>{selected.label}</div>
+                <div style={{ marginTop: 2, fontSize: 12, opacity: 0.75 }}>
+                  {selected.code} • {selected.lineName}
+                </div>
+              </div>
+              <div
+                style={{
+                  width: 46,
+                  height: 28,
+                  borderRadius: 999,
+                  background: selected.lineColor,
+                  color: "#0a0a0a",
+                  fontWeight: 900,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+                title={selected.lineName}
+              >
+                {selected.code.split("-")[0]}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.78 }}>
               You’ve arrived. Open the destination:
             </div>
 
