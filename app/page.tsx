@@ -4,6 +4,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SideMenu, type ModuleKey } from "@/app/components/SideMenu";
+import { PlayerPanel, type Track } from "@/app/components/PlayerPanel";
 
 type SystemLine = "Red" | "Blue" | "Purple" | "Gold";
 
@@ -353,6 +355,7 @@ export default function HomePage() {
   const [travelTarget, setTravelTarget] = useState<THREE.Vector3 | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeNarrative, setActiveNarrative] = useState<NarrativeLine["key"]>("intro");
+  const [module, setModule] = useState<ModuleKey>("tracks");
 
   // Placement Mode (press P)
   const [placementMode, setPlacementMode] = useState(false);
@@ -387,167 +390,125 @@ export default function HomePage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+
+  // For the UI player panel
+  const currentTrack: Track | null = selected
+    ? {
+        key: selected.key,
+        title: selected.label,
+        systemLine: selected.systemLine,
+        lineColor: selected.lineColor,
+        href: selected.href,
+        code: selected.code,
+      }
+    : null;
+
+  const visibleList = placementMode ? DESTINATIONS : activeDestinations;
+
+  const idx = currentTrack ? visibleList.findIndex((d) => d.key === currentTrack.key) : -1;
+
+  function openSelected() {
+    const href = selected?.href;
+    if (href) window.open(href, "_blank", "noopener,noreferrer");
+  }
+
+  function selectByOffset(delta: number) {
+    if (!visibleList.length) return;
+    const next = visibleList[(Math.max(0, idx) + delta + visibleList.length) % visibleList.length];
+    setSelected(next);
+    setShowModal(false);
+    setTravelTarget(destinationToWorld(next));
+  }
+
   return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        display: "grid",
-        gridTemplateRows: "auto 1fr",
-        background: "radial-gradient(1200px 700px at 20% 10%, rgba(0,212,255,0.18), transparent 60%), radial-gradient(900px 500px at 70% 30%, rgba(255,45,123,0.16), transparent 60%), #06070a",
-      }}
-    >
-      {/* Hero */}
-      <div style={{ padding: "18px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ color: "#F0E8DC", fontWeight: 950, letterSpacing: 2, fontSize: 18 }}>GHETTO HAIKU</div>
-            <div style={{ color: "rgba(240,232,220,0.7)", fontSize: 12, marginTop: 4 }}>THE HAIKU TRANSIT SYSTEM</div>
-          </div>
+    <div className="mc-shell">
+      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", height: "100%" }}>
+        <SideMenu active={module} onChange={setModule} />
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {NARRATIVE_LINES.map((l) => {
-              const active = l.key === activeNarrative;
-              return (
-                <button
-                  key={l.key}
-                  onClick={() => setActiveNarrative(l.key)}
-                  style={{
-                    padding: "8px 10px",
-                    borderRadius: 999,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: active ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.25)",
-                    color: "#F0E8DC",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                  }}
-                >
-                  {l.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Main */}
-      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", height: "100%" }}>
-        {/* Modules */}
-        <div style={{ borderRight: "1px solid rgba(255,255,255,0.08)", padding: 14 }}>
-          <div style={{ color: "rgba(240,232,220,0.7)", fontSize: 12, fontWeight: 900, letterSpacing: 1, marginBottom: 10 }}>MODULES</div>
-          {[
-            "Tracks",
-            "Lyrics",
-            "Visuals",
-            "Lore",
-            "Community",
-          ].map((m) => (
-            <button
-              key={m}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: "10px 12px",
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(10,10,10,0.35)",
-                color: "#F0E8DC",
-                fontWeight: 900,
-                marginBottom: 10,
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                // v1: modules are visual only; we can wire behaviors next
-              }}
-            >
-              {m}
-            </button>
-          ))}
-
-          <div style={{ marginTop: 10, padding: 12, borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10,10,10,0.25)", color: "rgba(240,232,220,0.78)", fontSize: 12 }}>
-            <div style={{ fontWeight: 950, color: "#F0E8DC" }}>System Lines</div>
-            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
-              <div><span style={{ color: "#ff0a2b", fontWeight: 900 }}>Red</span> — Hustle</div>
-              <div><span style={{ color: "#60a5fa", fontWeight: 900 }}>Blue</span> — Wisdom</div>
-              <div><span style={{ color: "#7c3aed", fontWeight: 900 }}>Purple</span> — Legacy</div>
-              <div><span style={{ color: "#fbbf24", fontWeight: 900 }}>Gold</span> — Divine N9NE</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Map canvas */}
         <div style={{ position: "relative" }}>
-          <Canvas camera={{ position: [0, 0, 7], fov: 45 }} dpr={[1, 2]}>
-            <color attach="background" args={["#06070a"]} />
-            <ambientLight intensity={1.0} />
-
-            <MapScene
-              destinations={placementMode ? DESTINATIONS : activeDestinations}
-              placementMode={placementMode}
-              placementKey={placementKey}
-              onSelect={(d) => {
-                setSelected(d);
-                setShowModal(false);
-                setTravelTarget(destinationToWorld(d));
-              }}
-              onPlace={(u, v) => {
-                if (!placementKey) return;
-                setPlaced((prev) => ({ ...prev, [placementKey]: { u, v } }));
-                setPlacementIndex((i) => Math.min(i + 1, DESTINATIONS.length - 1));
-              }}
-            />
-
-            {/* Hide markers not in current narrative by keeping list in MapScene global.
-                v2: We will pass activeDestinations into MapScene for true filtering.
-            */}
-            <CameraTravel
-              target={travelTarget}
-              onArrive={() => {
-                setShowModal(true);
-              }}
-            />
-          </Canvas>
-
-          {/* overlays */}
-          <div style={{ position: "absolute", left: 14, bottom: 14, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10,10,10,0.35)", color: "rgba(240,232,220,0.78)", fontSize: 12 }}>
-            Active route: <span style={{ fontWeight: 950, color: "#F0E8DC" }}>{NARRATIVE_LINES.find((l) => l.key === activeNarrative)?.name}</span>
+          <div className="mc-topbar">
+            <div className="mc-topTitle">HAIKU TRANSIT SYSTEM</div>
+            <div className="mc-linePills">
+              <span className="mc-pill" style={{ borderColor: "rgba(255,10,43,0.35)" }}>
+                <span style={{ color: "#ff0a2b", fontWeight: 950 }}>Red</span> Hustle
+              </span>
+              <span className="mc-pill" style={{ borderColor: "rgba(96,165,250,0.35)" }}>
+                <span style={{ color: "#60a5fa", fontWeight: 950 }}>Blue</span> Wisdom
+              </span>
+              <span className="mc-pill" style={{ borderColor: "rgba(124,58,237,0.35)" }}>
+                <span style={{ color: "#7c3aed", fontWeight: 950 }}>Purple</span> Legacy
+              </span>
+              <span className="mc-pill" style={{ borderColor: "rgba(255,213,64,0.35)" }}>
+                <span style={{ color: "#ffd540", fontWeight: 950 }}>Gold</span> Divine N9NE
+              </span>
+            </div>
           </div>
 
-          {placementMode ? (
-            <div style={{ position: "absolute", right: 14, bottom: 14, width: "min(520px, 92vw)", padding: 12, borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(10,10,10,0.72)", color: "#F0E8DC", fontSize: 12 }}>
-              <div style={{ fontWeight: 950, letterSpacing: 1 }}>PLACEMENT MODE</div>
-              <div style={{ marginTop: 6, color: "rgba(240,232,220,0.75)" }}>
-                Click the exact destination node on the backdrop for each station. Press <b>P</b> to toggle, <b>Esc</b> to exit.
-              </div>
-              <div style={{ marginTop: 10 }}>
-                Now placing: <b>{placementKey ?? "(none)"}</b> ({placementIndex + 1}/{DESTINATIONS.length})
-              </div>
-              <div style={{ marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(0,0,0,0.35)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace", fontSize: 11, whiteSpace: "pre-wrap" }}>
-                {JSON.stringify(placed, null, 2)}
-              </div>
-              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  onClick={() => {
-                    setPlacementIndex(0);
-                    setPlaced({});
-                  }}
-                  style={{ padding: "8px 10px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.25)", color: "#F0E8DC", fontWeight: 900, cursor: "pointer" }}
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={() => {
-                    // convenience: copy JSON
-                    navigator.clipboard?.writeText(JSON.stringify(placed, null, 2));
-                  }}
-                  style={{ padding: "8px 10px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.08)", color: "#F0E8DC", fontWeight: 900, cursor: "pointer" }}
-                >
-                  Copy JSON
-                </button>
-              </div>
+          <div className="mc-mapFrame">
+            <Canvas camera={{ position: [0, 0, 7], fov: 45 }} dpr={[1, 2]}>
+              <color attach="background" args={["#06070a"]} />
+              <ambientLight intensity={1.0} />
+
+              <MapScene
+                destinations={visibleList}
+                placementMode={placementMode}
+                placementKey={placementKey}
+                onSelect={(d) => {
+                  setSelected(d);
+                  setShowModal(false);
+                  setTravelTarget(destinationToWorld(d));
+                }}
+                onPlace={(u, v) => {
+                  if (!placementKey) return;
+                  setPlaced((prev) => ({ ...prev, [placementKey]: { u, v } }));
+                  setPlacementIndex((i) => Math.min(i + 1, DESTINATIONS.length - 1));
+                }}
+              />
+
+              <CameraTravel
+                target={travelTarget}
+                onArrive={() => {
+                  setShowModal(true);
+                }}
+              />
+            </Canvas>
+
+            {/* active route chip */}
+            <div style={{ position: "absolute", left: 16, bottom: 16 }}>
+              <span className="mc-pill">{NARRATIVE_LINES.find((l) => l.key === activeNarrative)?.name}</span>
             </div>
-          ) : null}
+
+            {/* placement mode panel (only when active) */}
+            {placementMode ? (
+              <div style={{ position: "absolute", right: 16, bottom: 16, width: "min(520px, 92vw)" }}>
+                <div className="mc-player" style={{ position: "static", width: "100%" }}>
+                  <div style={{ fontWeight: 950, letterSpacing: 1 }}>PLACEMENT MODE</div>
+                  <div style={{ marginTop: 6, color: "rgba(240,232,220,0.75)", fontSize: 12 }}>
+                    Click the exact node on the backdrop. Press <b>P</b> to toggle, <b>Esc</b> to exit.
+                  </div>
+                  <div style={{ marginTop: 10, fontSize: 12 }}>
+                    Now placing: <b>{placementKey ?? "(none)"}</b> ({placementIndex + 1}/{DESTINATIONS.length})
+                  </div>
+                  <div style={{ marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(0,0,0,0.35)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace", fontSize: 11, whiteSpace: "pre-wrap", color: "rgba(240,232,220,0.9)" }}>
+                    {JSON.stringify(placed, null, 2)}
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button className="mc-iconBtn" onClick={() => { setPlacementIndex(0); setPlaced({}); }}>Reset</button>
+                    <button className="mc-iconBtn" onClick={() => navigator.clipboard?.writeText(JSON.stringify(placed, null, 2))}>Copy JSON</button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* player panel */}
+            <PlayerPanel
+              track={currentTrack}
+              module={module}
+              onOpen={openSelected}
+              onPrev={() => selectByOffset(-1)}
+              onNext={() => selectByOffset(1)}
+            />
+          </div>
         </div>
       </div>
 
