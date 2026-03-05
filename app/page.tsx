@@ -3,7 +3,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SystemLine = "Red" | "Blue" | "Purple" | "Gold";
 
@@ -191,9 +191,17 @@ function StationBadge({ d }: { d: Destination }) {
 }
 
 function MapScene({
+  destinations,
+  placementMode,
+  placementKey,
   onSelect,
+  onPlace,
 }: {
+  destinations: Destination[];
+  placementMode: boolean;
+  placementKey: string | null;
   onSelect: (d: Destination) => void;
+  onPlace: (u: number, v: number) => void;
 }) {
   const texture = useMemo(() => {
     const loader = new THREE.TextureLoader();
@@ -210,27 +218,53 @@ function MapScene({
 
   return (
     <group>
-      <mesh>
+      <mesh
+        onPointerDown={(e) => {
+          if (!placementMode) return;
+          // R3F provides uv on intersections for PlaneGeometry.
+          const uv = (e as any).uv as { x: number; y: number } | undefined;
+          if (!uv) return;
+          // UV: (0,0) bottom-left, (1,1) top-right. Convert to (u,v) top-left.
+          const u = uv.x;
+          const v = 1 - uv.y;
+          onPlace(u, v);
+        }}
+        onPointerOver={() => {
+          if (placementMode) document.body.style.cursor = "crosshair";
+        }}
+        onPointerOut={() => {
+          if (placementMode) document.body.style.cursor = "default";
+        }}
+      >
         <planeGeometry args={[planeW, planeH]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
 
-      {DESTINATIONS.map((d) => {
+      {destinations.map((d) => {
         const x = (d.u - 0.5) * planeW;
         const y = (0.5 - d.v) * planeH;
+        const isPlacing = placementMode && placementKey === d.key;
+
         return (
           <group key={d.key} position={[x, y, 0.05]}>
             <mesh
-              onClick={() => onSelect(d)}
-              onPointerOver={(e) => (document.body.style.cursor = "pointer")}
-              onPointerOut={(e) => (document.body.style.cursor = "default")}
+              onClick={() => {
+                if (placementMode) return;
+                onSelect(d);
+              }}
+              onPointerOver={() => {
+                if (!placementMode) document.body.style.cursor = "pointer";
+              }}
+              onPointerOut={() => {
+                if (!placementMode) document.body.style.cursor = "default";
+              }}
             >
               <circleGeometry args={[0.16, 32]} />
-              <meshBasicMaterial color="#f59e0b" transparent opacity={0.95} />
+              <meshBasicMaterial color={isPlacing ? "#FFD540" : d.lineColor} transparent opacity={0.95} />
             </mesh>
             <mesh>
               <ringGeometry args={[0.20, 0.24, 48]} />
-              <meshBasicMaterial color="#fbbf24" transparent opacity={0.55} />
+              <meshBasicMaterial color={isPlacing ? "#FFD540" : d.lineColor} transparent opacity={0.55} />
             </mesh>
             <Html position={[0.0, 0.55, 0]} center>
               <StationBadge d={d} />
@@ -309,6 +343,11 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [activeNarrative, setActiveNarrative] = useState<NarrativeLine["key"]>("intro");
 
+  // Placement Mode (press P)
+  const [placementMode, setPlacementMode] = useState(false);
+  const [placementIndex, setPlacementIndex] = useState(0);
+  const [placed, setPlaced] = useState<Record<string, { u: number; v: number }>>({});
+
   const planeW = 10;
   const planeH = (IMAGE_H / IMAGE_W) * planeW;
 
@@ -320,6 +359,22 @@ export default function HomePage() {
 
   const allowedKeys = new Set(NARRATIVE_ASSIGN[activeNarrative]);
   const activeDestinations = DESTINATIONS.filter((d) => allowedKeys.has(d.key));
+
+  const placementKey = placementMode ? DESTINATIONS[Math.min(placementIndex, DESTINATIONS.length - 1)]?.key ?? null : null;
+
+  // Keyboard shortcut: P toggles placement mode, Esc exits
+  useEffect(() => {
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key.toLowerCase() === "p") {
+        setPlacementMode((v) => !v);
+      }
+      if (ev.key === "Escape") {
+        setPlacementMode(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <div
@@ -417,10 +472,18 @@ export default function HomePage() {
             <ambientLight intensity={1.0} />
 
             <MapScene
+              destinations={placementMode ? DESTINATIONS : activeDestinations}
+              placementMode={placementMode}
+              placementKey={placementKey}
               onSelect={(d) => {
                 setSelected(d);
                 setShowModal(false);
                 setTravelTarget(destinationToWorld(d));
+              }}
+              onPlace={(u, v) => {
+                if (!placementKey) return;
+                setPlaced((prev) => ({ ...prev, [placementKey]: { u, v } }));
+                setPlacementIndex((i) => Math.min(i + 1, DESTINATIONS.length - 1));
               }}
             />
 
@@ -435,10 +498,45 @@ export default function HomePage() {
             />
           </Canvas>
 
-          {/* v1 overlay note */}
+          {/* overlays */}
           <div style={{ position: "absolute", left: 14, bottom: 14, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10,10,10,0.35)", color: "rgba(240,232,220,0.78)", fontSize: 12 }}>
             Active route: <span style={{ fontWeight: 950, color: "#F0E8DC" }}>{NARRATIVE_LINES.find((l) => l.key === activeNarrative)?.name}</span>
           </div>
+
+          {placementMode ? (
+            <div style={{ position: "absolute", right: 14, bottom: 14, width: "min(520px, 92vw)", padding: 12, borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(10,10,10,0.72)", color: "#F0E8DC", fontSize: 12 }}>
+              <div style={{ fontWeight: 950, letterSpacing: 1 }}>PLACEMENT MODE</div>
+              <div style={{ marginTop: 6, color: "rgba(240,232,220,0.75)" }}>
+                Click the exact destination node on the backdrop for each station. Press <b>P</b> to toggle, <b>Esc</b> to exit.
+              </div>
+              <div style={{ marginTop: 10 }}>
+                Now placing: <b>{placementKey ?? "(none)"}</b> ({placementIndex + 1}/{DESTINATIONS.length})
+              </div>
+              <div style={{ marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(0,0,0,0.35)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace", fontSize: 11, whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(placed, null, 2)}
+              </div>
+              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  onClick={() => {
+                    setPlacementIndex(0);
+                    setPlaced({});
+                  }}
+                  style={{ padding: "8px 10px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.14)", background: "rgba(0,0,0,0.25)", color: "#F0E8DC", fontWeight: 900, cursor: "pointer" }}
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => {
+                    // convenience: copy JSON
+                    navigator.clipboard?.writeText(JSON.stringify(placed, null, 2));
+                  }}
+                  style={{ padding: "8px 10px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.08)", color: "#F0E8DC", fontWeight: 900, cursor: "pointer" }}
+                >
+                  Copy JSON
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
