@@ -652,6 +652,8 @@ export default function HomePage() {
                 target={travelTarget}
                 onArrive={() => {
                   setShowModal(true);
+                  // Prevent re-triggering the travel loop (and re-opening the modal) on subsequent frames.
+                  setTravelTarget(null);
                 }}
               />
             </Canvas>
@@ -788,7 +790,10 @@ export default function HomePage() {
                 border: "1px solid rgba(255,255,255,0.12)",
                 cursor: "pointer",
               }}
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setTravelTarget(null);
+              }}
             >
               Back to map
             </button>
