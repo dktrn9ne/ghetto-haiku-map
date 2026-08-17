@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghetto Haiku Map
 
-## Getting Started
+An interactive 3D album experience that turns a YouTube playlist into a navigable transit system. Each song is represented as a station, narrative themes become routes, and the camera travels across the map as listeners explore the project.
 
-First, run the development server:
+## What this project demonstrates
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Interactive 3D interfaces with React Three Fiber and Three.js
+- Animated camera movement and world-coordinate mapping
+- YouTube IFrame API integration for playlist playback
+- Route, station, and system-line filtering
+- Responsive interface composition with React and TypeScript
+- A keyboard-driven placement mode for tuning station coordinates
+- Deployment-ready Next.js architecture
+
+## Experience
+
+Listeners can select a narrative route or colored system line, choose a song station, follow the animated camera to that destination, and control the synchronized YouTube playlist.
+
+## Architecture
+
+The main page owns destination data, narrative groupings, player state, and the camera target. React Three Fiber renders the map as a textured plane, Three.js handles coordinates and animation, and reusable React components provide navigation and playback controls.
+
+```text
+app/
+├── page.tsx                 # 3D scene, routes, player state, camera travel
+├── components/
+│   ├── PlayerPanel.tsx      # Track and playback controls
+│   └── SideMenu.tsx         # Experience navigation
+├── globals.css              # Visual system and responsive layout
+└── layout.tsx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technology
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Next.js 16 · React 19 · TypeScript · Three.js · React Three Fiber · React Three Drei · YouTube IFrame API
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run locally
 
-## Learn More
+Requirements: Node.js 20 or newer and npm.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The scene expects its map artwork at `public/backdrop.jpg`. YouTube playback requires network access and may require one manual play action when the browser blocks autoplay.
 
-## Deploy on Vercel
+## Useful controls
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Select a station to travel to it and load its track.
+- Use the player controls to move through visible stations.
+- Press `P` to toggle placement mode.
+- Press `Escape` to leave placement mode.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Portfolio focus
+
+This project combines creative direction with production-oriented frontend engineering. It demonstrates how 3D interaction, media APIs, and narrative information architecture can become one coherent browser experience.
